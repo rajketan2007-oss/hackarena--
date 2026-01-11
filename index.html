@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏦 Instant Loan Approval Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="hero-section">
+            <h1>🏦 Loan Approval Predictor</h1>
+            <p>Check your eligibility for Personal/Business Loans based on exact bank criteria</p>
+        </header>
+
+        <!-- Applicant Type Selection -->
+        <div class="applicant-type">
+            <label class="radio-group">
+                <input type="radio" name="applicantType" value="salaried" id="salaried" checked>
+                <span class="radio-label">👨‍💼 Salaried Employee</span>
+            </label>
+            <label class="radio-group">
+                <input type="radio" name="applicantType" value="self-employed" id="selfEmployed">
+                <span class="radio-label">💼 Self-Employed</span>
+            </label>
+        </div>
+
+        <!-- Input Form -->
+        <form class="input-section" id="loanForm">
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="age">🎂 Age (Years)</label>
+                    <input type="number" id="age" min="21" max="65" placeholder="28" required>
+                    <span class="criteria salaried" data-age-salaried="21-60">Salaried: 21-60 yrs</span>
+                    <span class="criteria self-employed" data-age-self="24-65">Self: 24-65 yrs</span>
+                </div>
+
+                <div class="input-group">
+                    <label for="monthlyIncome">💰 Monthly Income (₹)</label>
+                    <input type="number" id="monthlyIncome" min="25000" placeholder="50000" required>
+                    <span class="criteria salaried" data-income-salaried="₹25,000+">Salaried: ₹25K+</span>
+                    <span class="criteria self-employed" data-income-self="₹40,000+">Self: ₹40K+</span>
+                </div>
+
+                <div class="input-group">
+                    <label for="cibilScore">📊 CIBIL Score</label>
+                    <input type="number" id="cibilScore" min="300" max="900" placeholder="750" required>
+                    <span class="criteria salaried" data-cibil-salaried="700+">Salaried: 700+</span>
+                    <span class="criteria self-employed" data-cibil-self="720+">Self: 720+</span>
+                </div>
+
+                <div class="input-group">
+                    <label for="totalEmi">💳 Current Monthly EMI (₹)</label>
+                    <input type="number" id="totalEmi" min="0" value="0" placeholder="5000">
+                </div>
+
+                <div class="input-group full-width">
+                    <label for="employmentYears">⏱️ Employment/Business Years</label>
+                    <input type="number" id="employmentYears" min="1" placeholder="3" required>
+                    <span class="criteria salaried" data-emp-salaried="2+ yrs total">Salaried: 2+ yrs total</span>
+                    <span class="criteria self-employed" data-emp-self="3+ yrs business">Self: 3+ yrs business</span>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="btn btn-primary" onclick="calculateEligibility()">
+                    🚀 Check Eligibility
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                    🔄 Reset Form
+                </button>
+            </div>
+        </form>
+
+        <!-- Results -->
+        <div id="resultsSection" class="results-section"></div>
+    </div>
+
+    <script>
+        function calculateEligibility() {
+            const type = document.querySelector('input[name="applicantType"]:checked').value;
+            const age = parseInt(document.getElementById('age').value) || 0;
+            const income = parseFloat(document.getElementById('monthlyIncome').value) || 0;
+            const cibil = parseInt(document.getElementById('cibilScore').value) || 0;
+            const emi = parseFloat(document.getElementById('totalEmi').value) || 0;
+            const empYears = parseInt(document.getElementById('employmentYears').value) || 0;
+
+            // EXACT BANK CRITERIA FROM YOUR SPECS
+            const criteria = type === 'salaried' ? {
+                age: [21, 60],
+                income: 25000,
+                cibil: 700,
+                empYears: 2,
+                dti: 40,
+                instantCibil: 750
+            } : {
+                age: [24, 65],
+                income: 40000,
+                cibil: 720,
+                empYears: 3,
+                dti: 50,
+                instantCibil: 750
+            };
+
+            const dti = income > 0 ? (emi / income) * 100 : 100;
+            
+            // Check ALL 5 parameters
+            const checks = {
+                age: age >= criteria.age[0] && age <= criteria.age[1],
+                income: income >= criteria.income,
+                cibil: cibil >= criteria.cibil,
+                employment: empYears >= criteria.empYears,
+                dti: dti <= criteria.dti
+            };
+
+            const passedCount = Object.values(checks).filter(Boolean).length;
+            const isEligible = passedCount === 5; // ALL criteria must pass
+
+            // **MAIN RESULT: "You are ELIGIBLE" when 5/5 pass**
+            document.getElementById('resultsSection').innerHTML = `
+                <div class="result-card ${isEligible ? 'eligible' : 'not-eligible'}">
+                    <div class="status-icon ${isEligible ? 'success' : 'warning'}">
+                        ${isEligible ? '✅' : '⚠️'}
+                    </div>
+                    
+                    <h2>${isEligible ? '🎉 YOU ARE ELIGIBLE!' : '⚠️ NOT ELIGIBLE'}</h2>
+                    
+                    ${isEligible ? `
+                        <div class="eligible-message">
+                            <p class="big-text">✅ YOU ARE ELIGIBLE for loan approval!</p>
+                            <p>${cibil >= criteria.instantCibil ? '🎖️ INSTANT APPROVAL' : '✅ STANDARD APPROVAL'}</p>
+                            <div class="loan-types">
+                                <h3>Eligible For:</h3>
+                                <ul>
+                                    <li>🏦 Personal Loan (up to ₹20 Lakh)</li>
+                                    <li>🏠 Home Loan (80% financing)</li>
+                                    <li>📚 Education Loan</li>
+                                    <li>💼 Business Loan</li>
+                                </ul>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="not-eligible-message">
+                            <p>You need to improve <strong>${5-passedCount}/5</strong> parameters</p>
+                            <p>Target: ${Object.entries(checks)
+                                .filter(([key, passed]) => !passed)
+                                .map(([key]) => key.toUpperCase())
+                                .join(', ')}</p>
+                        </div>
+                    `}
+                    
+                    <!-- Parameter Status Table -->
+                    <div class="parameters-grid">
+                        ${Object.entries(checks).map(([key, passed]) => `
+                            <div class="parameter-item ${passed ? 'pass' : 'fail'}">
+                                <strong>${getParameterName(key)}</strong>
+                                <span>${passed ? '✅ PASS' : '❌ FAIL'}</span>
+                                ${!passed ? `<small>Target: ${getTargetValue(key, criteria, type)}</small>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="score-display">${Math.round((passedCount/5)*100)}% Match</div>
+                </div>
+            `;
+        }
+
+        function getParameterName(param) {
+            const names = {
+                age: 'Age', income: 'Monthly Income', cibil: 'CIBIL Score',
+                employment: 'Employment Years', dti: 'Debt-to-Income'
+            };
+            return names[param] || param;
+        }
+
+        function getTargetValue(param, criteria, type) {
+            if (param === 'age') return `${criteria.age[0]}-${criteria.age[1]} years`;
+            if (param === 'income') return type === 'salaried' ? '₹25,000+' : '₹40,000+';
+            if (param === 'cibil') return type === 'salaried' ? '700+' : '720+';
+            if (param === 'employment') return type === 'salaried' ? '2+ years' : '3+ years';
+            if (param === 'dti') return `<${criteria.dti}%`;
+            return '';
+        }
+
+        function resetForm() {
+            document.getElementById('loanForm').reset();
+            document.getElementById('resultsSection').innerHTML = '';
+            updateCriteriaDisplay();
+        }
+
+        function updateCriteriaDisplay() {
+            const type = document.querySelector('input[name="applicantType"]:checked').value;
+            document.querySelectorAll('.criteria').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll(`.criteria.${type}`).forEach(c => c.classList.add('active'));
+        }
+
+        // Event Listeners
+        document.querySelectorAll('input[name="applicantType"]').forEach(radio => {
+            radio.addEventListener('change', updateCriteriaDisplay);
+        });
+        document.addEventListener('DOMContentLoaded', updateCriteriaDisplay);
+    </script>
+</body>
+</html>
